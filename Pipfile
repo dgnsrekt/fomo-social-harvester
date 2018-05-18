@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+name = "pypi"
+verify_ssl = true
+
+[requires]
+python_version = "3.6"
+
+[dev-packages]
+pytest = "*"
+pytest-watch = "*"
+
+[packages]
+requests-html = "*"
+structlog = "*"
+luigi = "*"
+tenacity = "*"
+pandas = "*"
+plotly = "*"
+peewee = "*"
+cython = "*"
+tqdm = "*"
