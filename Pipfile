@@ -1,22 +1,32 @@
 [[source]]
-url = "https://pypi.org/simple"
-name = "pypi"
-verify_ssl = true
 
-[requires]
-python_version = "3.6"
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
 
 [dev-packages]
+
 pytest = "*"
 pytest-watch = "*"
 
+
 [packages]
+
+peewee = "*"
 requests-html = "*"
 structlog = "*"
 luigi = "*"
 tenacity = "*"
 pandas = "*"
 plotly = "*"
-peewee = "*"
 cython = "*"
 tqdm = "*"
+"psycopg2" = "*"
+"psycopg2-binary" = "*"
+cufflinks = "*"
+
+
+[requires]
+
+python_version = "3.6"
