@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 # THIRD-PARTY
 import logging
 import structlog
+import tqdm
 from requests_html import HTMLSession
 from tenacity import *
 
@@ -50,18 +51,20 @@ def get_coinmarketcap_links(limit=None):
 
     links = []
     page_data = fetch_page(url)
-    for html in page_data:
-        log = logger.bind(url=html.url)
-        log.debug('Parsing.')
+    with tqdm.tqdm(total=16) as pbar:
+        for html in page_data:
+            log = logger.bind(url=html.url)
+            log.debug('Parsing.')
 
-        for link in html.absolute_links:
-            if '#markets' in link:
-                links.append(link)
-        log.debug(f'Found {len(links)} links.')
+            for link in html.absolute_links:
+                if '#markets' in link:
+                    links.append(link)
+            log.debug(f'Found {len(links)} links.')
 
-        if limit:
-            if len(links) > limit:
-                break
+            if limit:
+                if len(links) > limit:
+                    break
+            pbar.update(1)
     return links
 
 
@@ -122,6 +125,7 @@ def parse_title_from_url(url):
     return title[0]
 
 
+@scraper_exception_handler()
 def parse_telegram_link(url):
     html = fetch_page(url)
     if html:
@@ -151,23 +155,25 @@ def parse_business_links(links):
 def parse_coins_link_information(url):
     coin_data = defaultdict(None)
 
-    element, links = get_elements_and_links_from_url(url)
+    if url:
 
-    title = parse_title_from_url(url)
+        element, links = get_elements_and_links_from_url(url)
 
-    business_page = get_coin_business_websites(element)
-    telegram_links = get_coin_telegram_pages(element)
-    twitter_links = parse_twitter_link(links)
+        title = parse_title_from_url(url)
 
-    if business_page:
-        new_telegram_links = parse_business_links(business_page)
-        if new_telegram_links:
-            telegram_links = list(set(telegram_links + new_telegram_links))
+        business_page = get_coin_business_websites(element)
+        telegram_links = get_coin_telegram_pages(element)
+        twitter_links = parse_twitter_link(links)
 
-    coin_data.update({'business_page': business_page})
-    coin_data.update({'telegram_links': telegram_links})
-    coin_data.update({'twitter_links': twitter_links})
-    coin_data.update({'name': title})
-    print('.', end='', flush=True)
+        if business_page:
+            new_telegram_links = parse_business_links(business_page)
+            if new_telegram_links:
+                telegram_links = list(set(telegram_links + new_telegram_links))
 
-    return coin_data
+        # coin_data.update({'business_page': business_page}) # no reason to keep this.
+        coin_data.update({'telegram_links': telegram_links})
+        coin_data.update({'twitter_links': twitter_links})
+        coin_data.update({'name': title})
+        print('.', end='', flush=True)
+
+        return coin_data

@@ -1,9 +1,11 @@
 
+from datetime import datetime, timedelta
 import functools
 from time import time
 
+
 from requests.exceptions import (SSLError, ReadTimeout, ConnectTimeout,
-                                 ConnectionError, ChunkedEncodingError)
+                                 ConnectionError, ChunkedEncodingError, TooManyRedirects)
 
 
 def scraper_exception_handler():
@@ -25,7 +27,9 @@ def scraper_exception_handler():
                     ConnectionError,
                     ChunkedEncodingError,
                     UnicodeDecodeError,
-                    ValueError) as e:
+                    ValueError,
+                    TooManyRedirects) as e:
+                # TODO: add differen output for RTO, CTO, CE, CHE, UNI, VAL
                 print('E', end='', flush=True)
 
             except Exception as e:
@@ -76,3 +80,7 @@ def timeit(method):
         print(f'{method.__name__.upper()} Completed in: {time_result: 2.2f} s')
         return time_result, result
     return timed
+
+
+def get_current_hour():
+    return datetime.now().replace(microsecond=0, second=0, minute=0)
