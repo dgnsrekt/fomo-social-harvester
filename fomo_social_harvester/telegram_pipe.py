@@ -11,6 +11,7 @@ import json
 import luigi
 import luigi.contrib.postgres
 import pandas as pd
+import schedule
 import structlog
 from structlog.stdlib import LoggerFactory
 
@@ -128,7 +129,18 @@ class TelegramMembersToDatabaseTask(luigi.Task):
             return False
 
 
-if __name__ == '__main__':
+def job():
+    print('running job..')
     task = TelegramMembersToDatabaseTask()
     # luigi.build([task], local_scheduler=True)
     luigi.build([task])
+
+
+if __name__ == '__main__':
+
+    schedule.every().hour.at(':00').do(job)
+    print('job scheduled')
+
+    while True:
+        schedule.run_pending()
+        sleep(1)
