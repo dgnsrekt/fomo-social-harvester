@@ -65,8 +65,6 @@ def get_elements_and_links_from_url(url):
     :return: unstyled list element
     :rtype: requests_html.Element'''
 
-    # session = HTMLSession()
-    # r = session.get(url)
     html = fetch_page(url)
 
     selector = 'body > div.container > div > div.col-lg-10 > ' \
@@ -75,6 +73,8 @@ def get_elements_and_links_from_url(url):
         element = html.find(selector)[0]
         links = html.absolute_links
         return element, links
+    else:
+        return None, None
 
 
 def get_coin_business_websites(element):
@@ -84,7 +84,9 @@ def get_coin_business_websites(element):
     :return list of coin main website links:
     :rtype: [links]'''
 
-    return [link.absolute_links.pop() for link in element.find('a', containing='Website')]
+    if element:
+        return [link.absolute_links.pop() for link in element.find('a', containing='Website')]
+    return None
 
 
 def get_coin_telegram_pages(element):
@@ -94,9 +96,11 @@ def get_coin_telegram_pages(element):
     :return list of telegram links from coinmarketcap page.:
     :rtype: [links]'''
 
-    pre = [link.absolute_links.pop() for link in element.find('a', containing='Chat')]
-    post = filter(is_valid_telegram_link, pre)
-    return list(post)
+    if element:
+        pre = [link.absolute_links.pop() for link in element.find('a', containing='Chat')]
+        post = filter(is_valid_telegram_link, pre)
+        return list(post)
+    return None
 
 
 def parse_title_from_url(url):
@@ -115,9 +119,14 @@ def parse_title_from_url(url):
 
 
 def parse_telegram_link(url):
+
     html = fetch_page(url)
     if html:
-        preprocessing = list(html.absolute_links)
+        try:
+            preprocessing = list(html.absolute_links)
+        except (UnicodeDecodeError, ValueError):
+            preprocessing = list()
+
         postfiltering = filter(is_valid_telegram_link, preprocessing)
         return list(postfiltering)
     return None
@@ -132,12 +141,14 @@ def parse_twitter_link(links):
 
 def parse_business_links(links):
     temp = []
-    for link in links:
-        parsed = parse_telegram_link(link)
-        if parsed:
-            temp += parsed
+    if links:
+        for link in links:
+            parsed = parse_telegram_link(link)
+            if parsed:
+                temp += parsed
 
-    return list(set(temp))
+        return list(set(temp))
+    return None
 
 
 def parse_coins_link_information(url):
@@ -163,5 +174,8 @@ def parse_coins_link_information(url):
         coin_data.update({'twitter_links': twitter_links})
         coin_data.update({'name': title})
         print('.', end='', flush=True)
+        print(coin_data)
 
         return coin_data
+
+    return coin_data
