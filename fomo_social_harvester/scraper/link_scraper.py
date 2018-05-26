@@ -1,6 +1,7 @@
 # STANDARDLIB
 from collections import defaultdict
 from time import sleep, time
+import json
 from urllib.parse import urlparse
 
 # THIRD-PARTY
@@ -36,6 +37,11 @@ def fetch_page(url):
         return response.html
     else:
         log.debug('Connection Error...')
+def parse_maxpages():
+    url = 'https://api.coinmarketcap.com/v2/global/'
+    data = fetch_page(url)
+    maxpages = int(json.loads(data.html)['data']['active_cryptocurrencies']) // 100
+    return maxpages
 
 
 def get_coinmarketcap_links(limit=None):
