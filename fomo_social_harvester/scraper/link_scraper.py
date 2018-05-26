@@ -37,7 +37,10 @@ def get_coinmarketcap_links(limit=None):
 
     links = []
     page_data = fetch_page(url)
-    with tqdm.tqdm(total=16) as pbar:
+
+    total_pages = parse_maxpages()
+
+    with tqdm.tqdm(total=total_pages) as pbar:
         for html in page_data:
             log = logger.bind(url=html.url)
             log.debug('Parsing.')
