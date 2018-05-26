@@ -125,7 +125,6 @@ def parse_title_from_url(url):
     return title[0]
 
 
-@scraper_exception_handler()
 def parse_telegram_link(url):
     html = fetch_page(url)
     if html:
