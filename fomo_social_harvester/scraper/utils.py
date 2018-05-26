@@ -7,6 +7,8 @@ from time import time
 from requests.exceptions import (SSLError, ReadTimeout, ConnectTimeout,
                                  ConnectionError, ChunkedEncodingError, TooManyRedirects)
 
+import logging
+
 
 def scraper_exception_handler():
     """
@@ -30,11 +32,10 @@ def scraper_exception_handler():
                     ValueError,
                     TooManyRedirects) as e:
                 # TODO: add differen output for RTO, CTO, CE, CHE, UNI, VAL
-                print('E', end='', flush=True)
+                logging.info('E', end='', flush=True)
 
             except Exception as e:
-                print('X', end='', flush=True)
-                raise
+                logging.info('X', end='', flush=True)
 
         return wrapper
     return decorator
