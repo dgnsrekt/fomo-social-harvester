@@ -10,9 +10,9 @@ from .utils import scraper_exception_handler
 @scraper_exception_handler()
 def fetch_page(url):
     '''Fetches html from url
-    :param str url: Url to request from.
+    :param str url: Url to fetch.
 
-    :return: requests.html
+    :return: requests.html or None
     '''
     logger = structlog.getLogger()
 
@@ -28,3 +28,4 @@ def fetch_page(url):
         return response.html
     else:
         log.debug('Connection Error...')
+        return None
