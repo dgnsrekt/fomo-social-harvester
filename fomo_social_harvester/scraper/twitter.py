@@ -45,19 +45,22 @@ def parse_likes(element):
 
 
 def parse_twitter_count(row):
-    sleep(5)
+    sleep(.1)
     name = row.get('name')
     twitter_link = row.get('link')
-    html = fetch_page(twitter_link)
 
-    selector = '#page-container > div.ProfileCanopy.ProfileCanopy--withNav.ProfileCanopy--large.js-variableHeightTopBar > div > div.ProfileCanopy-navBar.u-boxShadow > div > div > div.Grid-cell.u-size2of3.u-lg-size3of4 > div > div > ul'
-    if html:
+    user = twitter_link.split('/')[-1]
 
-        try:
-            element = html.find(selector)[0]
+    twitter_header = {
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'Referer': f'https://twitter.com/{user}',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/603.3.8 (KHTML, like Gecko) Version/10.1.2 Safari/603.3.8',
+        'X-Twitter-Active-User': 'yes',
+        'X-Requested-With': 'XMLHttpRequest'
+    }
 
-        except IndexError:
-            print('I', end='', flush=True)
+    html = fetch_page(twitter_link, header=twitter_header)
+    # html = fetch_page(twitter_link)
             return {'name': name, 'tweets': None, 'following': None,
                     'followers': None, 'likes': None}
 
