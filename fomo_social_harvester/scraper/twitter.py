@@ -4,6 +4,10 @@ import logging
 from .base import fetch_page
 
 
+class TwitterParsingError(Exception):
+    pass
+
+
 def parse_tweets(element):
     tweet_selector = 'li.ProfileNav-item.ProfileNav-item--tweets.is-active > a > span.ProfileNav-value'
     try:
