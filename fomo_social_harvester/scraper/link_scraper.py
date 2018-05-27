@@ -18,6 +18,10 @@ from .utils import scraper_exception_handler
 
 
 def parse_maxpages():
+    '''Fetches number of pages from coinmarketcap.
+    :return: Number of pages to parse.
+    :rtype: int'''
+
     url = 'https://api.coinmarketcap.com/v2/global/'
     data = fetch_page(url)
     maxpages = int(json.loads(data.html)['data']['active_cryptocurrencies']) // 100
@@ -31,6 +35,7 @@ def get_coinmarketcap_links(limit=None):
 
     :return: links parsed from coinmarketcap.
     :rtype: list('/currencies/{}/#markets')'''
+
     logger = structlog.getLogger()
 
     url = 'https://coinmarketcap.com/'
@@ -38,21 +43,25 @@ def get_coinmarketcap_links(limit=None):
     links = []
     page_data = fetch_page(url)
 
-    total_pages = parse_maxpages()
+    if limit == None:
+        total_pages = parse_maxpages()
+    else:
+        total_pages = (limit // 100) + 1
 
     with tqdm.tqdm(total=total_pages) as pbar:
         for html in page_data:
-            log = logger.bind(url=html.url)
-            log.debug('Parsing.')
+            # log = logger.bind(url=html.url)
+            # log.debug('Parsing.')
 
             for link in html.absolute_links:
                 if '#markets' in link:
                     links.append(link)
-            log.debug(f'Found {len(links)} links.')
+            # log.debug(f'Found {len(links)} links.')
 
             if limit:
                 if len(links) > limit:
-                    break
+                    pbar.update(1)
+                    return links[:limit]
             pbar.update(1)
     return links
 
@@ -100,11 +109,11 @@ def get_coin_telegram_pages(element):
         pre = [link.absolute_links.pop() for link in element.find('a', containing='Chat')]
         post = filter(is_valid_telegram_link, pre)
         return list(post)
-    return None
+    return list()
 
 
 def parse_title_from_url(url):
-    '''Pulls currency name from url
+    '''Parses currency name from url
 
     :param str url:
     :return currency name:
@@ -119,20 +128,31 @@ def parse_title_from_url(url):
 
 
 def parse_telegram_link(url):
+    '''Parses telegram link from url
+
+    :param str url:
+    :return telegram links:
+    :rtype: [str]'''
 
     html = fetch_page(url)
     if html:
         try:
             preprocessing = list(html.absolute_links)
+            postfiltering = filter(is_valid_telegram_link, preprocessing)
+            return list(postfiltering)
         except (UnicodeDecodeError, ValueError):
-            preprocessing = list()
-
-        postfiltering = filter(is_valid_telegram_link, preprocessing)
-        return list(postfiltering)
-    return None
+            print('T', end='', flush=True)
+            return list()
+    return list()
 
 
 def parse_twitter_link(links):
+    '''Parses twitter link from links
+
+    :param list [links]:
+    :return twitter links:
+    :rtype: [str]'''
+
     if links:
         filtering = filter(is_valid_twitter_link, links)
         return list(filtering)
@@ -144,11 +164,11 @@ def parse_business_links(links):
     if links:
         for link in links:
             parsed = parse_telegram_link(link)
-            if parsed:
+            if len(parsed) > 1:
                 temp += parsed
 
         return list(set(temp))
-    return None
+    return list()
 
 
 def parse_coins_link_information(url):
@@ -174,7 +194,9 @@ def parse_coins_link_information(url):
         coin_data.update({'twitter_links': twitter_links})
         coin_data.update({'name': title})
         print('.', end='', flush=True)
-        print(coin_data)
+
+        if telegram_links == None:
+            print(coin_data)
 
         return coin_data
 
