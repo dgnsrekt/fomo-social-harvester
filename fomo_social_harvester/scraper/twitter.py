@@ -13,7 +13,8 @@ def parse_tweets(element):
     try:
         return int(element.find(tweet_selector)[0].element.values()[1])
     except IndexError:
-        return None
+        print('TW', end='', flush=True)
+        return 0
 
 
 def parse_following(element):
@@ -21,7 +22,8 @@ def parse_following(element):
     try:
         return int(element.find(following_selector)[0].element.values()[1])
     except IndexError:
-        return None
+        print('FG', end='', flush=True)
+        return 0
 
 
 def parse_followers(element):
@@ -29,7 +31,8 @@ def parse_followers(element):
     try:
         return int(element.find(followers_selector)[0].element.values()[1])
     except IndexError:
-        return None
+        print('FR', end='', flush=True)
+        return 0
 
 
 def parse_likes(element):
@@ -37,7 +40,8 @@ def parse_likes(element):
     try:
         return int(element.find(likes_selector)[0].element.values()[1])
     except IndexError:
-        return None
+        print('L', end='', flush=True)
+        return 0
 
 
 def parse_twitter_count(row):
