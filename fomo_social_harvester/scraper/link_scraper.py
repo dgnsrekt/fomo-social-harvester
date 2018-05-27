@@ -1,15 +1,15 @@
 # STANDARDLIB
 from collections import defaultdict
 from time import sleep, time
-import json
 from urllib.parse import urlparse
+import json
 
 # THIRD-PARTY
+from requests_html import HTMLSession
+from tenacity import *
 import logging
 import structlog
 import tqdm
-from requests_html import HTMLSession
-from tenacity import *
 
 # LOCAL-APP
 from .base import fetch_page
