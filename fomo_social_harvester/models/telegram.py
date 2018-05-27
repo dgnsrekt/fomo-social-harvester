@@ -33,6 +33,7 @@ class Telegram(BaseModel):
                                     Telegram.median,
                                     Telegram.count
                                     ).where(Telegram.date == date).dicts()
+
             df = pd.DataFrame(list(query))
             df.set_index('name', inplace=True)
             return df
