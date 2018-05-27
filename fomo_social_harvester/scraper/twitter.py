@@ -61,16 +61,45 @@ def parse_twitter_count(row):
 
     html = fetch_page(twitter_link, header=twitter_header)
     # html = fetch_page(twitter_link)
+
+    selector_one = '#page-container > div.ProfileCanopy.ProfileCanopy--withNav.ProfileCanopy--large.js-variableHeightTopBar > div > div.ProfileCanopy-navBar.u-boxShadow > div > div > div.Grid-cell.u-size2of3.u-lg-size3of4 > div > div > ul'
+    selector_two = '#page-container > div.ProfileCanopy.ProfileCanopy--withNav.js-variableHeightTopBar > div > div.ProfileCanopy-navBar.u-boxShadow > div > div > div.Grid-cell.u-size2of3.u-lg-size3of4 > div > div > ul'
+
+    if html:
+        if html.url == 'https://twitter.com/account/suspended':
+            print(name, 'suspended')
             return {'name': name, 'tweets': None, 'following': None,
                     'followers': None, 'likes': None}
 
-        else:
-            # TODO: MAY NEED TO CHANGE TO RAW ELEMENT
-            tweets = parse_tweets(element)
-            following = parse_following(element)
-            followers = parse_followers(element)
-            likes = parse_likes(element)
+        element_one = html.find(selector_one)
+        element_two = html.find(selector_two)
 
-            print('.', end='', flush=True)
-            return {'name': name, 'tweets': tweets, 'following': following,
-                    'followers': followers, 'likes': likes}
+        if len(element_one) > 0:
+            element = element_one
+        elif len(element_two) > 0:
+            element = element_two
+        else:
+            print(html, name, 'Element Not Found')
+            raise TwitterParsingError(f'Element Not found {name}')
+
+        # try:
+        element = element[0]
+
+        # except IndexError:
+        #     print(name, element, end='', flush=True)
+        #     return {'name': name, 'tweets': None, 'following': None,
+        #             'followers': None, 'likes': None}
+        #
+        # else:
+        tweets = parse_tweets(element)
+        following = parse_following(element)
+        followers = parse_followers(element)
+        likes = parse_likes(element)
+
+        print('.', end='', flush=True)
+        return {'name': name, 'tweets': tweets, 'following': following,
+                'followers': followers, 'likes': likes}
+    print()
+    print(f'Oops! Either "{user}" does not exist or is private.')
+    return {'name': name, 'tweets': None, 'following': None,
+            'followers': None, 'likes': None}
