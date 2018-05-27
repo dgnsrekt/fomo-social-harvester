@@ -20,7 +20,7 @@ class Telegram(BaseModel):
     date = DateTimeField()
 
     def add_member_data(**kwargs):
-        print('.', end='', flush=True)
+        print(':', end='', flush=True)
 
         Telegram.create(**kwargs)
         logging.debug(f'{kwargs} added.')
@@ -36,7 +36,6 @@ class Telegram(BaseModel):
             df = pd.DataFrame(list(query))
             df.set_index('name', inplace=True)
             return df
-
         except Exception as e:
             print(e)
             raise
