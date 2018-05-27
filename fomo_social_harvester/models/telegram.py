@@ -11,9 +11,10 @@ from .base import BaseModel, db, get_current_date_time
 
 class Telegram(BaseModel):
     name = CharField(null=False)
-    sum = DecimalField(max_digits=12, decimal_places=2, null=True)
-    mean = DecimalField(max_digits=12, decimal_places=2, null=True)
-    median = DecimalField(max_digits=12, decimal_places=2, null=True)
+
+    sum = BigIntegerField(null=True)
+    mean = BigIntegerField(null=True)
+    median = BigIntegerField(null=True)
     count = BigIntegerField(null=True)
 
     date = DateTimeField()
