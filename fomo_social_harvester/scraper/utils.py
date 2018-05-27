@@ -3,11 +3,9 @@ from datetime import datetime, timedelta
 import functools
 from time import time
 
-
+from lxml.etree import ParserError, XMLSyntaxError
 from requests.exceptions import (SSLError, ReadTimeout, ConnectTimeout,
                                  ConnectionError, ChunkedEncodingError, TooManyRedirects)
-
-import logging
 
 
 def scraper_exception_handler():
@@ -23,6 +21,7 @@ def scraper_exception_handler():
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
+
             except(SSLError,
                     ReadTimeout,
                     ConnectTimeout,
@@ -30,12 +29,15 @@ def scraper_exception_handler():
                     ChunkedEncodingError,
                     UnicodeDecodeError,
                     ValueError,
-                    TooManyRedirects) as e:
+                    TooManyRedirects,
+                    ParserError,
+                    XMLSyntaxError) as e:
                 # TODO: add differen output for RTO, CTO, CE, CHE, UNI, VAL
-                logging.info('E', end='', flush=True)
+                print('E', end='', flush=True)
 
             except Exception as e:
-                logging.info('X', end='', flush=True)
+                print('X', end='', flush=True)
+                print(str(e.message), str(e.args))
 
         return wrapper
     return decorator
@@ -61,9 +63,14 @@ def is_valid_telegram_link(link):
 
 
 def is_valid_twitter_link(link):
+    '''Checks link to see if its a real twitter link.
+
+    :param str link:
+    :return True if valid twitter link:
+    :rtype: bool'''
+
     if 'https://twitter.com/CoinMarketCap' in link:
         return False
-
     elif 'https://twitter.com' in link:
         return True
     elif 'http://twitter.com' in link:
@@ -74,10 +81,10 @@ def is_valid_twitter_link(link):
 
 def timeit(method):
     def timed(*args, **kw):
-        ts = time()
+        tstart = time()
         result = method(*args, **kw)
-        te = time()
-        time_result = ((te - ts) * 1000) / 60
+        tend = time()
+        time_result = ((tend - tstart) * 1000) / 60
         print(f'{method.__name__.upper()} Completed in: {time_result: 2.2f} s')
         return time_result, result
     return timed
