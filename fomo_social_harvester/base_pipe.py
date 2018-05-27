@@ -50,7 +50,7 @@ class ParseMetaDataToJSONTask(luigi.Task):
     limit = luigi.parameter.IntParameter(default=None)
 
     def requires(self):
-        return CreateDateFolder()
+        return CreateDateFolder(date=self.date)
 
     def output(self):
         path = Path(str(self.input().path)) / 'Raw.json'
@@ -76,7 +76,7 @@ class ParseTelegramJSONtoCSVTask(luigi.Task):
     limit = luigi.parameter.IntParameter(default=None)
 
     def requires(self):
-        return [CreateDateFolder(), ParseMetaDataToJSONTask(limit=self.limit)]
+        return [CreateDateFolder(date=self.date), ParseMetaDataToJSONTask(date=self.date, limit=self.limit)]
 
     def output(self):
         path = Path(str(self.input()[0].path)) / 'Telegram.csv'
@@ -105,7 +105,7 @@ class ParseTwitterJSONtoCSVTask(luigi.Task):
     limit = luigi.parameter.IntParameter(default=None)
 
     def requires(self):
-        return [CreateDateFolder(), ParseMetaDataToJSONTask(limit=self.limit)]
+        return [CreateDateFolder(date=self.date), ParseMetaDataToJSONTask(date=self.date, limit=self.limit)]
 
     def output(self):
         path = Path(str(self.input()[0].path)) / 'Twitter.csv'

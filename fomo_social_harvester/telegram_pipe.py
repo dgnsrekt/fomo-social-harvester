@@ -34,7 +34,7 @@ class ParseTelegramMemberCountTask(luigi.Task):
     limit = luigi.Parameter(default=None)  # DEBUG: REMOVE THIS!!!!
 
     def requires(self):
-        return [base_pipe.CreateDateFolder(), base_pipe.ParseTelegramJSONtoCSVTask()]
+        return [base_pipe.CreateDateFolder(date=self.date), base_pipe.ParseTelegramJSONtoCSVTask(date=self.date)]
 
     def output(self):
         path = Path(str(self.input()[0].path)) / f'Telegram_Data_{self.hour}.csv'
@@ -87,7 +87,7 @@ class TelegramMembersToDatabaseTask(luigi.Task):
     debug = luigi.BoolParameter(default=False)  # NOTE: SUPER DANGEROUS WILL SCRUB DATABASE
 
     def requires(self):
-        return ParseTelegramMemberCountTask()
+        return ParseTelegramMemberCountTask(date=self.date, hour=self.hour)
 
     def run(self):
         if not Telegram.table_exists():

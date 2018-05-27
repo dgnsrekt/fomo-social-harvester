@@ -1,11 +1,23 @@
 import functools
 from time import sleep
+from datetime import date
 
 import schedule
 import luigi
 
+from scraper.utils import get_current_hour
 from telegram_pipe import TelegramMembersToDatabaseTask
 from twitter_pipe import TwitterMembersToDatabaseTask
+
+
+class SocialHarvestTask(luigi.WrapperTask):
+    date = luigi.DateParameter(default=date.today())
+    hour = luigi.DateHourParameter(default=get_current_hour())
+    debug = luigi.BoolParameter(default=False)
+
+    def requires(self):
+        yield TelegramMembersToDatabaseTask(date=self.date, hour=self.hour, debug=self.debug)
+        yield TwitterMembersToDatabaseTask(date=self.date, hour=self.hour, debug=self.debug)
 
 
 def with_logging(func):
@@ -20,17 +32,15 @@ def with_logging(func):
 
 @with_logging
 def job():
-    debug = False
-    task_a = TwitterMembersToDatabaseTask(debug=debug)
-    task_b = TelegramMembersToDatabaseTask(debug=debug)
-
-    tasks = [task_a, task_b]
-    luigi.build(tasks)
+    date_ = date.today()
+    hour_ = get_current_hour()
+    debug_ = False
+    luigi.build([SocialHarvestTask(date=date_, hour=hour_, debug=debug_)], workers=2)
 
 
 def main():
     for t in range(24):
-        d = f'{t:02d}:10'
+        d = f'{t:02d}:5'
         schedule.every().day.at(d).do(job)
 
     while True:
@@ -42,4 +52,5 @@ def main():
 
 
 if __name__ == '__main__':
+    job()
     main()

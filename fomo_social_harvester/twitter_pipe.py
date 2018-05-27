@@ -35,7 +35,7 @@ class ParseTwitterMemberCountTask(luigi.Task):
     limit = luigi.Parameter(default=None)
 
     def requires(self):
-        return [base_pipe.CreateDateFolder(), base_pipe.ParseTwitterJSONtoCSVTask()]
+        return [base_pipe.CreateDateFolder(date=self.date), base_pipe.ParseTwitterJSONtoCSVTask(date=self.date)]
 
     def output(self):
         path = Path(str(self.input()[0].path)) / f'Twitter_Data_{self.hour}.csv'
@@ -75,7 +75,7 @@ class TwitterMembersToDatabaseTask(luigi.Task):
     debug = luigi.BoolParameter(default=False)  # NOTE: SUPER DANGEROUS WILL SCRUB DATABASE
 
     def requires(self):
-        return ParseTwitterMemberCountTask()
+        return ParseTwitterMemberCountTask(date=self.date, hour=self.hour)
 
     def run(self):
         if not Twitter.table_exists():
