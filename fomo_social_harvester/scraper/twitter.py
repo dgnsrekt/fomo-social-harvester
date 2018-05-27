@@ -101,5 +101,5 @@ def parse_twitter_count(row):
                 'followers': followers, 'likes': likes}
     print()
     print(f'Oops! Either "{user}" does not exist or is private.')
-    return {'name': name, 'tweets': None, 'following': None,
-            'followers': None, 'likes': None}
+    return {'name': name, 'tweets': 0, 'following': 0,
+            'followers': 0, 'likes': 0}
