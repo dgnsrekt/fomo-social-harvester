@@ -1,11 +1,12 @@
 # STANDARDLIB
 from csv import DictWriter
 from datetime import date
-import json
-import logging
-from multiprocessing import Pool, cpu_count, log_to_stderr, SUBDEBUG
 from pathlib import Path
 from time import sleep
+import json
+import logging
+import multiprocessing
+from multiprocessing import Pool, cpu_count
 
 # THIRD-PARTY
 import luigi
@@ -19,10 +20,6 @@ from constains import DATAPATH
 from scraper.utils import timeit
 from scraper.link_scraper import (get_coinmarketcap_links,
                                   parse_coins_link_information)
-
-
-structlog.configure(logger_factory=LoggerFactory())
-logging.basicConfig(level='INFO')
 
 
 class CreateDataFolder(luigi.Task):
@@ -60,7 +57,7 @@ class ParseMetaDataToJSONTask(luigi.Task):
         return luigi.LocalTarget(str(path))
 
     def run(self):
-        # TODO: DEBUG config option which changes liimit to 99
+        # TODO: DEBUG config option which changes limit to 99
         links_ = get_coinmarketcap_links(limit=self.limit)
 
         max_processes = cpu_count() * 2
