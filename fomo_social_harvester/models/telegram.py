@@ -1,8 +1,12 @@
-import pandas as pd
+# STANDARDLIB
 import logging
+import pandas as pd
 
+# THRID-PARTY
 from peewee import *
-from models.base import BaseModel, db, get_current_date_time
+
+# LOCAL-APP
+from .base import BaseModel, db, get_current_date_time
 
 
 class Telegram(BaseModel):
