@@ -1,5 +1,5 @@
-from fomo_social_harvester.models import base_model
-from fomo_social_harvester.models import cmcap_meta
+from fomo_social_harvester.models import base
+from fomo_social_harvester.models import telegram
 
 
 def test_model_imports():
