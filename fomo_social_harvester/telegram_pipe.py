@@ -4,6 +4,7 @@ from csv import DictWriter
 from datetime import date
 import logging
 from multiprocessing import Pool, cpu_count
+from pathlib import Path
 from time import sleep
 import json
 
@@ -14,42 +15,35 @@ import pandas as pd
 import schedule
 import structlog
 from structlog.stdlib import LoggerFactory
+from peewee import ProgrammingError
 
 # LOCAL-APP
+import base_pipe
 from constains import DATAPATH
 from scraper.telegram import parse_member_count
 from scraper.utils import get_current_hour
 from models.telegram import Telegram, create_telegram_table, clean_telegram_table
-import link_pipe
 
-structlog.configure(logger_factory=LoggerFactory())
-logging.basicConfig(level='INFO')
-
-
-class InputTelegramCSV(luigi.ExternalTask):
-    date = luigi.DateParameter(default=date.today())
-
-    def output(self):
-        path = str(DATAPATH / f'{self.date}_Telegram.csv')
-        return luigi.LocalTarget(path)
+# structlog.configure(logger_factory=LoggerFactory())
+# logging.basicConfig(level='INFO')
 
 
 class ParseTelegramMemberCountTask(luigi.Task):
     date = luigi.DateParameter(default=date.today())
     hour = luigi.DateHourParameter(default=get_current_hour())
-    limit = luigi.Parameter(default=None)
-
-    def output(self):
-        path = str(DATAPATH / f'{self.hour}_TelegramMembers.csv')
-        return luigi.LocalTarget(path)
+    limit = luigi.Parameter(default=None)  # DEBUG: REMOVE THIS!!!!
 
     def requires(self):
-        return link_pipe.ParseTelegramJSONtoCSVTask()
+        return [base_pipe.CreateDateFolder(), base_pipe.ParseTelegramJSONtoCSVTask()]
+
+    def output(self):
+        path = Path(str(self.input()[0].path)) / f'Telegram_Data_{self.hour}.csv'
+        return luigi.LocalTarget(str(path))
 
     def run(self):
         telegram_links = []
 
-        with self.input().open('r') as f:
+        with self.input()[1].open('r') as f:
             reader = csv.reader(f)
             header = next(reader)
 
@@ -96,51 +90,62 @@ class TelegramMembersToDatabaseTask(luigi.Task):
         return ParseTelegramMemberCountTask()
 
     def run(self):
-        if self.debug:
-            clean_telegram_table()  # DEBUG: REMOVE
         if not Telegram.table_exists():
             create_telegram_table()
 
-        df = pd.read_csv(self.input().path)
-        df.set_index('name', inplace=True)
-        for name, row in df.round(2).iterrows():
-            _mean = row['mean']
-            _median = row['median']
-            _sum = row['sum']
-            _count = row['link_count']
+        if not self.complete():
 
-            data = {'name': name, 'mean': _mean, 'median': _median,
-                    'sum': int(_sum), 'count': int(_count), 'date': self.hour}
-            Telegram.add_member_data(**data)
+            df = pd.read_csv(self.input().path)
+            df.set_index('name', inplace=True)
+            for name, row in df.round(2).iterrows():
+                _mean = row['mean']
+                _median = row['median']
+                _sum = row['sum']
+                _count = row['link_count']
+
+                data = {'name': name, 'mean': int(_mean), 'median': int(_median),
+                        'sum': int(_sum), 'count': int(_count), 'date': self.hour}
+                Telegram.add_member_data(**data)
 
             # TODO: TELEGRAM LINKS, RAW DATA. rename csv files
 
     def complete(self):
+        # TODO: Add task to create a DB/Table or
+        # IDEA: Add an except for no table - create table then check databsse for complete
+        if self.debug:
+            clean_telegram_table()  # DEBUG: REMOVE
+            print('DELETING TABLE FOR DEBUGGING!!!!!!!!!!!!!!!!!')
         try:
             local_ = pd.read_csv(self.input().path)
             dbase_ = Telegram.data_by_date(self.hour)
+            print('#' * 25)
             print(len(local_))  # TODO: Logging
             print(len(dbase_))  # TODO: Logging
             # TODO: If else raise data not written to db
             print(len(local_.index) == len(dbase_.index))
             # TODO: If else raise data not written to db
+            print('#' * 25)
             return len(local_.index) == len(dbase_.index)
-        except FileNotFoundError:
+
+        except (FileNotFoundError, KeyError) as e:
+            print()
             return False
 
 
 def job():
     print('running job..')
-    task = TelegramMembersToDatabaseTask()
-    # luigi.build([task], local_scheduler=True)
-    luigi.build([task])
+    task = TelegramMembersToDatabaseTask(debug=False)  # TODO: remeove this
+    luigi.build([task], local_scheduler=True)
+    # luigi.build([task])
 
 
 if __name__ == '__main__':
+    job()
 
-    schedule.every().hour.at(':00').do(job)
-    print('job scheduled')
-
-    while True:
-        schedule.run_pending()
-        sleep(1)
+    # schedule.every().hour.at(':00').do(job)
+    # print('job scheduled')
+    #
+    # while True:
+    #     schedule.run_pending()
+    #     print(schedule.idle_seconds())
+    #     sleep(1)
