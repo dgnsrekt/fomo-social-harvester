@@ -5,9 +5,11 @@ from datetime import date
 import schedule
 import luigi
 
+from constains import DISCORD_WEBTOKEN
 from scraper.utils import get_current_hour
 from telegram_pipe import TelegramMembersToDatabaseTask
 from twitter_pipe import TwitterMembersToDatabaseTask
+from luigi_discord import notify, DiscordBot
 
 
 class SocialHarvestTask(luigi.WrapperTask):
@@ -32,10 +34,16 @@ def with_logging(func):
 
 @with_logging
 def job():
+    with open(DISCORD_WEBTOKEN, 'r') as f:
+        url = f.read().strip()
+
+    discord_bogdabot = DiscordBot(url=url, events=['SUCCESS', 'FAILURE'])
+
     date_ = date.today()
     hour_ = get_current_hour()
     debug_ = False
-    luigi.build([SocialHarvestTask(date=date_, hour=hour_, debug=debug_)], workers=2)
+    with notify(discord_bogdabot):
+        luigi.build([SocialHarvestTask(date=date_, hour=hour_, debug=debug_)], workers=2)
 
 
 def main():

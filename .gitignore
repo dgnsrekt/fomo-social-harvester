@@ -4,3 +4,4 @@
 data/
 benchdata/
 Pipfile.lock
+discord.token

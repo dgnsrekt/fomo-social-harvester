@@ -4,6 +4,11 @@ url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
 
+[[source]]
+
+url = "https://repo.fury.io/run2dev/"
+verify_ssl = true
+name = "fury"
 
 [dev-packages]
 
@@ -26,6 +31,7 @@ tqdm = "*"
 "psycopg2-binary" = "*"
 cufflinks = "*"
 schedule = "*"
+luigi-discord = "*"
 
 
 [requires]
